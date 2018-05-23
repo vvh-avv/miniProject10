@@ -22,11 +22,34 @@
 		});
 		
 		//$("input[name='orderList']").on("click", function(){
-		//	self.location="/purchase/listPurchase?userId=${userr.userId}";	
+			//alert( $(".ct_list_pop td:nth-child(3)").text() );
+			//self.location="/purchase/listPurchase?userId="+$("#userId").text().trim();
 		//})
 		
 		$(".ct_list_pop td:nth-child(3)").on("click", function(){
-			self.location = "/user/getUser?userId="+$(this).text().trim();
+			//self.location = "/user/getUser?userId="+$(this).text().trim();
+			var userId = $(this).text().trim();
+			$.ajax({
+				url : "/user/json/getUser/"+userId,
+				method : "GET",
+				dataType : "json" ,
+				headers : {
+					"Accept" : "application/json",
+					"Content-Type" : "application/json"
+				},
+				success : function(JSONData, status){
+					var displayValue = "<h3>"
+						+"아이디 : "+JSONData.userId+"<br/>"
+						+"이  름 : "+JSONData.userName+"<br/>"
+						+"이메일 : "+JSONData.email+"<br/>"
+						+"ROLE : "+JSONData.role+"<br/>"
+						+"등록일 : "+JSONData.regDate+"<br/>"
+						+"</h3>";
+						
+						$("h3").remove();
+						$( "#"+userId+"" ).html(displayValue);
+				}
+			})//e.o.ajax
 		});
 
 		$("#under").on("click", function(){
@@ -141,7 +164,7 @@
 						</td>
 					</tr>
 					<tr>
-						<td colspan="11" bgcolor="D6D7D6" height="1"></td>
+						<td id="${user.userId}" colspan="11" bgcolor="D6D7D6" height="1"></td>
 					</tr>
 				</c:forEach>
 			</table>

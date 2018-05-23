@@ -14,7 +14,7 @@
 		var pw = $("input:password").val();
 			
 		if(id==null || id.length<1){
-			alert('ID 를 입력하지 않으셨습니다.');
+			alert('아이디를 입력하지 않으셨습니다.');
 			$("input:text").focus();
 			return;
 		}
@@ -24,8 +24,41 @@
 			$("input:password").focus();
 			return;
 		}
-			
+		
 		$("form").attr("method","POST").attr("action","/user/login").attr("target","_parent").submit();
+		
+		/*
+		$.ajax({
+			url : "/user/json/login",
+			method : "POST",
+			dataType : "json",
+			headers : {
+				"Accept" : "application/json",
+				"Content-Type" : "application/json"
+			},
+			data : JSON.stringify({
+				userId : id,
+				password : pw
+			}),
+			success : function(JSONData, status){
+				
+				if(JSONData!=null){
+					//[방법1]
+					//$(window.parent.document.location).attr("href","/index.jsp");
+					
+					//[방법2]
+					//window.parent.document.location.reload();
+					
+					//[방법3]
+					//$(window.parent.frames["topFrame"].document.location).attr("href","/layout/top.jsp");
+					//$(window.parent.frames["leftFrame"].document.location).attr("href","/layout/left.jsp");
+					//$(window.parent.frames["rightFrame"].document.location).attr("href","/user/getUser?userId="+JSONData.userId);
+				}else{
+					alert("아이디, 패스워드를 다시 확인해주세요.");
+				}
+			}
+		}); //e.o.ajax
+		*/
 	}
 	
 	$(function(){
@@ -41,14 +74,12 @@
 		$("img[src='/images/btn_login.gif']").on("click", function(){
 			fncLogin();
 		});
-	});
-	
-	$(function(){
+
 		$("img[src='/images/btn_add.gif']").on("click", function(){
 			self.location="/user/addUser";
-			//self.location="addUserView.jsp";
 		});
 	});
+	
 </script>
 
 </head>

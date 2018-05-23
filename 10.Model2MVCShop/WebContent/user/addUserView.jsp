@@ -9,62 +9,98 @@
 <script src="http://code.jquery.com/jquery-2.1.4.min.js"></script>
 <script type="text/javascript">
 
-	function fncAddUser() {
-		var id=$("input[name='userId']").val();
-		var pw=$("input[name='password']").val();
-		var pw_confirm=$("input[name='password2']").val();
-		var name=$("input[name='userName']").val();
-
-		if (id == null || id.length < 1) {
-			alert("아이디는 반드시 입력하셔야 합니다.");
-			return;
-		}
-		if (pw == null || pw.length < 1) {
-			alert("패스워드는 반드시 입력하셔야 합니다.");
-			return;
-		}
-		if (pw_confirm == null || pw_confirm.length < 1) {
-			alert("패스워드 확인은 반드시 입력하셔야 합니다.");
-			return;
-		}
-		if (name == null || name.length < 1) {
-			alert("이름은 반드시 입력하셔야 합니다.");
-			return;
-		}
-
-		if (pw != pw_confirm) {
-			alert("비밀번호 확인이 일치하지 않습니다.");
-			$("input:text[name='password2']").focus();
-			return;
-		}
-
-		var value = "";	
-		if ($("input:text[name='phone2']").val() != ""  &&  $("input:text[name='phone3']").val() != "") {
-			var value = $("option:selected").val() + "-" 
-							+ $("input[name='phone2']").val() + "-" 
-							+ $("input[name='phone3']").val();
-		}
-		$("input:hidden[name='phone']").val( value );
-
-		$("form").attr("method" , "POST").attr("action" , "/user/addUser").submit();
-	}
-	
-	//==> 추가된부분 : "가입"  Event 연결
 	$(function(){
 		$( "td.ct_btn01:contains('가입')" ).on("click" , function() {
-			fncAddUser();
-		});
-	});
+			var id=$("input[name='userId']").val();
+			var pw=$("input[name='password']").val();
+			var pw_confirm=$("input[name='password2']").val();
+			var name=$("input[name='userName']").val();
 
-	 $(function() {
-		 $("input[name='email']").on("change" , function() {
-			 var email=$("input[name='email']").val();
+			if (id == null || id.length < 1) {
+				alert("아이디는 반드시 입력하셔야 합니다.");
+				return;
+			}
+			if (pw == null || pw.length < 1) {
+				alert("패스워드는 반드시 입력하셔야 합니다.");
+				return;
+			}
+			if (pw_confirm == null || pw_confirm.length < 1) {
+				alert("패스워드 확인은 반드시 입력하셔야 합니다.");
+				return;
+			}
+			if (name == null || name.length < 1) {
+				alert("이름은 반드시 입력하셔야 합니다.");
+				return;
+			}
+
+			if (pw != pw_confirm) {
+				alert("비밀번호 확인이 일치하지 않습니다.");
+				$("input:text[name='password2']").focus();
+				return;
+			}
+
+			var value = "";	
+			if ($("input:text[name='phone2']").val() != ""  &&  $("input:text[name='phone3']").val() != "") {
+				var value = $("option:selected").val() + "-" 
+								+ $("input[name='phone2']").val() + "-" + $("input[name='phone3']").val();
+			}
+			$("input:hidden[name='phone']").val( value );
+
+			$("form").attr("method" , "POST").attr("action" , "/user/addUser").submit();
+		})
+		
+		$("input[name='email']").on("change" , function() {
+			var email=$("input[name='email']").val();
 		    
-			 if(email != "" && (email.indexOf('@') < 1 || email.indexOf('.') == -1) ){
-		    	alert("이메일 형식이 아닙니다.");
-		     }
-		});
-	});	
+			if(email != "" && (email.indexOf('@') < 1 || email.indexOf('.') == -1) ){
+				alert("이메일 형식이 아닙니다.");
+			}
+		})
+		
+		$("td.ct_btn:contains('ID중복확인')").on("click" , function() {
+			popWin = window
+			.open(
+					"/user/checkDuplication.jsp",
+					"popWin",
+					"left=300,top=200,width=300,height=200,marginwidth=0,marginheight=0,scrollbars=no,scrolling=no,menubar=no,resizable=no");
+		})
+		
+		$( "td.ct_btn01:contains('취소')" ).on("click" , function() {
+			$("form")[0].reset();
+		})
+		
+		$("input[name='password2']").on("keyup", function(){
+			$.ajax({
+				success : function(){
+					if( $("input[name='password']").val() == $("input[name='password2']").val() ){
+						$("#pwdMessage").text("비밀번호가 일치합니다.").css("color","blue");
+					}else{
+						$("#pwdMessage").text("비밀번호가 일치하지 않습니다.").css("color","red");
+					}
+				}
+			})
+		})
+		
+		$("input[name='userId']").on("keyup", function(){
+			$.ajax({
+				url : "/user/json/checkDuplication/"+$(this).val().trim(),
+				method : "GET",
+				dataType : "json",
+				headers : {
+					"Accept" : "application/json",
+					"Content-Type" : "application/json"
+				},
+				success : function(JSONData, status){
+					if(JSONData==true){
+						$("#idMessage").text("사용가능한 아이디입니다.").css("color","blue");
+					}else{
+						$("#idMessage").text("이미 존재하는 아이디입니다.").css("color","red");
+					}
+				}
+			})
+		})
+		
+	});
 
 	function checkSsn() {
 		var ssn1, ssn2;
@@ -97,22 +133,6 @@
 		var mod = sum % 11;
 		return ((11 - mod) % 10 == last) ? true : false;
 	}
-	
-	$(function(){
-		$("td.ct_btn:contains('ID중복확인')").on("click" , function() {
-			popWin = window
-			.open(
-					"/user/checkDuplication.jsp",
-					"popWin",
-					"left=300,top=200,width=300,height=200,marginwidth=0,marginheight=0,scrollbars=no,scrolling=no,menubar=no,resizable=no");
-		})
-	})
-
-	$(function() {
-		$( "td.ct_btn01:contains('취소')" ).on("click" , function() {
-				$("form")[0].reset();
-		});
-	});
 	
 </script>
 </head>
@@ -147,24 +167,11 @@
 			</tr>
 
 			<tr>
-				<td width="104" class="ct_write">아이디 <img src="/images/ct_icon_red.gif" width="3" height="3" align="absmiddle" />
-				</td>
+				<td width="104" class="ct_write">아이디 <img src="/images/ct_icon_red.gif" width="3" height="3" align="absmiddle" /></td>
 				<td bgcolor="D6D6D6" width="1"></td>
 				<td class="ct_write01">
-					<table width="100%" border="0" cellspacing="0" cellpadding="0">
-						<tr>
-							<td width="105"><input type="text" name="userId" class="ct_input_bg" style="width: 100px; height: 19px" maxLength="20"></td>
-							<td>
-								<table border="0" cellspacing="0" cellpadding="0">
-									<tr>
-										<td width="4" height="21"><img src="/images/ct_btng01.gif" width="4" height="21" /></td>
-										<td align="center" background="/images/ct_btng02.gif" class="ct_btn" style="padding-top: 3px;">ID중복확인</td>
-										<td width="4" height="21"><img src="/images/ct_btng03.gif" width="4" height="21" /></td>
-									</tr>
-								</table>
-							</td>
-						</tr>
-					</table>
+					<input type="text" name="userId" class="ct_input_g" style="width: 100px; height: 19px" maxLength="20">
+					<span id="idMessage"></span>
 				</td>
 			</tr>
 
@@ -185,7 +192,10 @@
 			<tr>
 				<td width="104" class="ct_write">비밀번호 확인 <img src="/images/ct_icon_red.gif" width="3" height="3" align="absmiddle" /> </td>
 				<td bgcolor="D6D6D6" width="1"></td>
-				<td class="ct_write01"><input type="password" name="password2" class="ct_input_g" style="width: 100px; height: 19px" maxLength="10" minLength="6" /></td>
+				<td class="ct_write01">
+					<input type="password" name="password2" class="ct_input_g" style="width: 100px; height: 19px" maxLength="10" minLength="6" />
+					<span id="pwdMessage"></span>
+				</td>
 			</tr>
 
 			<tr>

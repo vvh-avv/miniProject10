@@ -50,6 +50,7 @@
 		$("#tc_cancle>").css("color", "red");
 		$("#tc_arrive>").css("color", "blue");
 		
+		$(".ct_list_pop td:nth-child(5)" ).css("color" , "red");
 		$(".ct_list_pop:nth-child(4n)" ).css("background-color" , "whitesmoke");
 		
 	})

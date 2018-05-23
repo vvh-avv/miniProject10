@@ -331,7 +331,7 @@
 							<!-- 어드민으로 접속했을 경우 -->
 							<c:if test="${!empty user && user.role=='admin'}">
 								<c:choose>
-									<c:when test="${product.proTranCode=='0' || product.proTranCode=='-1'}">
+									<c:when test="${product.proTranCode.trim()=='0' || product.proTranCode.trim()=='-1'}">
 										판매중
 									</c:when>
 									<c:when test="${product.proTranCode.trim()=='1'}">
@@ -357,7 +357,7 @@
 									<c:when test="${product.proTranCode.trim()=='0' || product.proTranCode.trim()=='-1'}">
 										판매중
 									</c:when>
-									<c:when test="${product.proTranCode!='0'}">
+									<c:when test="${product.proTranCode.trim()!='0'}">
 										재고없음
 									</c:when>
 								</c:choose>

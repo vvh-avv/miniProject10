@@ -64,12 +64,14 @@ public class UserRestController {
 		return userService.getUser(user.getUserId());
 	}
 	
-	@RequestMapping(value="json/checkDuplication", method=RequestMethod.POST)
-	public void checkDuplication( @PathVariable String userId ) throws Exception{
-		System.out.println("/user/json/checkDuplication : POST");
+	@RequestMapping(value="json/checkDuplication/{userId}", method=RequestMethod.GET)
+	public boolean checkDuplication( @PathVariable String userId ) throws Exception{
+		System.out.println("/user/json/checkDuplication : GET");
 		
 		boolean result = userService.checkDuplication(userId);
 		System.out.println("boolean °ª : "+result);
+		
+		return result;
 	}
 	
 	@RequestMapping(value="json/listUser/{sort}", method=RequestMethod.POST)
