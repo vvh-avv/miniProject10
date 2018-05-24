@@ -34,9 +34,18 @@ public class UserRestController {
 	public User login( @RequestBody User user, HttpSession session ) throws Exception{
 		System.out.println("/user/json/login : POST");
 		
-		System.out.println(":: "+user);
+		User returnUser = userService.getUser(user.getUserId());
 		
-		return userService.getUser(user.getUserId());
+		if(returnUser==null) {
+			returnUser = new User();
+			returnUser.setUserId("none");
+		}
+		
+		if( user.getPassword().equals(returnUser.getPassword()) ){
+			session.setAttribute("user", returnUser);
+		}
+		
+		return returnUser;
 	}
 	
 	@RequestMapping(value="json/getUser/{userId}", method=RequestMethod.GET)
@@ -123,4 +132,5 @@ public class UserRestController {
 		
 		System.out.println(result);
 	}
+	
 }

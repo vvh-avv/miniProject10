@@ -21,7 +21,7 @@
 	<insert id="insertUser" parameterType="user">
 		INSERT
 		INTO users(user_id, user_name, password, role, ssn, cell_phone, addr, email, reg_date)
-		VALUES( #{userId}, #{userName}, #{password}, 'user' , #{ssn}, #{phone}, #{addr}, #{email}, SYSDATE )
+		VALUES( #{userId}, #{userName}, #{password}, 'user' , #{ssn:VARCHAR}, #{phone:VARCHAR}, #{addr:VARCHAR}, #{email:VARCHAR}, SYSDATE )
 	</insert>
 
 	<select id="findUser" parameterType="string" resultMap="userMap">

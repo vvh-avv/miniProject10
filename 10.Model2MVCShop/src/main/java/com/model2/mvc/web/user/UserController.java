@@ -12,6 +12,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.ModelAttribute;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -115,6 +116,17 @@ public class UserController {
 		if( user.getPassword().equals(dbUser.getPassword()) ){
 			session.setAttribute("user", dbUser);
 		}
+		
+		return "redirect:/index.jsp";
+	}
+	
+	@RequestMapping(value="snsLogin/{userId}")
+	public String snsLogin( @PathVariable String userId, HttpSession session ) throws Exception{
+		System.out.println("/user/snsLogin : GET / POST");
+		
+		User dbUser = userService.getUser(userId);
+		
+		session.setAttribute("user", dbUser);
 		
 		return "redirect:/index.jsp";
 	}

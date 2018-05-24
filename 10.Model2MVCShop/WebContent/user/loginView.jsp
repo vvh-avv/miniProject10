@@ -7,6 +7,9 @@
 <link rel="stylesheet" href="/css/admin.css" type="text/css">
 
 <script src="//developers.kakao.com/sdk/js/kakao.min.js"></script>
+<script src="https://static.nid.naver.com/js/naveridlogin_js_sdk_2.0.0.js"></script>
+<script src="https://static.nid.naver.com/js/naverLogin_implicit-1.0.3.js" charset="utf-8"></script>
+
 <script src="http://code.jquery.com/jquery-2.1.4.min.js"></script>
 <script type="text/javascript">
 	function fncLogin(){
@@ -25,9 +28,6 @@
 			return;
 		}
 		
-		$("form").attr("method","POST").attr("action","/user/login").attr("target","_parent").submit();
-		
-		/*
 		$.ajax({
 			url : "/user/json/login",
 			method : "POST",
@@ -42,23 +42,31 @@
 			}),
 			success : function(JSONData, status){
 				
-				if(JSONData!=null){
-					//[방법1]
-					//$(window.parent.document.location).attr("href","/index.jsp");
+				if(JSONData.userId != "none"){
 					
-					//[방법2]
-					//window.parent.document.location.reload();
+					if( JSONData.password == $("#password").val() ){
+						$("form").attr("method","POST").attr("action","/user/login").attr("target","_parent").submit();
+						//[방법1]
+						//$(window.parent.document.location).attr("href","/index.jsp");
+						//[방법2]
+						//window.parent.document.location.reload();
+						//[방법3]
+						//$(window.parent.frames["topFrame"].document.location).attr("href","/layout/top.jsp");
+						//$(window.parent.frames["leftFrame"].document.location).attr("href","/layout/left.jsp");
+						//$(window.parent.frames["rightFrame"].document.location).attr("href","/user/getUser?userId="+JSONData.userId);
+					}else{
+						$("#message").text("비밀번호를 다시 확인해주세요.").css("color", "red");
+						$("#password").val("").focus();
+					}
 					
-					//[방법3]
-					//$(window.parent.frames["topFrame"].document.location).attr("href","/layout/top.jsp");
-					//$(window.parent.frames["leftFrame"].document.location).attr("href","/layout/left.jsp");
-					//$(window.parent.frames["rightFrame"].document.location).attr("href","/user/getUser?userId="+JSONData.userId);
 				}else{
-					alert("아이디, 패스워드를 다시 확인해주세요.");
+					$("#userId").val("").focus();
+					$("#password").val("");
+					$("#message").text("아이디, 패스워드를 다시 확인해주세요.").css("color", "red");
 				}
 			}
 		}); //e.o.ajax
-		*/
+		
 	}
 	
 	$(function(){
@@ -78,7 +86,87 @@
 		$("img[src='/images/btn_add.gif']").on("click", function(){
 			self.location="/user/addUser";
 		});
+
+		
 	});
+
+	//카카오 로그인
+	$(function(){
+		Kakao.init('b3eb26586b770154ea49919a7f59f2d2');
+		
+		$("#kakao-login-btn").on("click", function(){
+			//1. 로그인 시도
+			Kakao.Auth.login({
+		        success: function(authObj) {
+		          //console.log(JSON.stringify(authObj));
+		          //console.log(Kakao.Auth.getAccessToken());
+		        
+		          //2. 로그인 성공시, API를 호출합니다.
+		          Kakao.API.request({
+		            url: '/v1/user/me',
+		            success: function(res) {
+		              //console.log(JSON.stringify(res));
+		              res.id += "@k";
+		              
+		              $.ajax({
+		            	  url : "/user/json/checkDuplication/"+res.id,
+		            	  headers : {
+		  					"Accept" : "application/json",
+		  					"Content-Type" : "application/json"
+		  				  },
+		  				  success : function(idChk){
+		  					  
+		  					  if(idChk==true){ //DB에 아이디가 없을 경우 => 회원가입
+		  						  console.log("회원가입중...");
+		  						  $.ajax({
+		  							  url : "/user/json/addUser",
+		  							  method : "POST",
+		  							  headers : {
+		  								"Accept" : "application/json",
+		  								"Content-Type" : "application/json"
+		  							  },
+		  							  data : JSON.stringify({
+  		  								userId : res.id,
+		  								userName : res.properties.nickname,
+  		  								password : "kakao123",
+		  							  }),
+		  							  success : function(JSONData){
+		  								 alert("회원가입이 정상적으로 되었습니다.");
+		  								 $("form").attr("method","POST").attr("action","/user/snsLogin/"+res.id).attr("target","_parent").submit();
+		  							  }
+		  						  })
+		  					  }
+		  					  if(idChk==false){ //DB에 아이디가 존재할 경우 => 로그인
+		  						  console.log("로그인중...");
+		  						  $("form").attr("method","POST").attr("action","/user/snsLogin/"+res.id).attr("target","_parent").submit();
+		  					  }
+		  				  }
+		              })
+		            },
+		            fail: function(error) {
+		              alert(JSON.stringify(error));
+		            }
+		          });
+		          
+		        },
+		        fail: function(err) {
+		          alert(JSON.stringify(err));
+		        }
+		      });
+		})
+	})//e.o.kakao
+	
+	//네이버 로그인
+	$(function(){
+   			var naverLogin = new naver.LoginWithNaverId({
+				clientId: "NqLY8zfxRnZIl3CjoL1a",
+				callbackUrl: "http://192.168.0.69:8080/user/naverCallback.jsp",
+				isPopup: true,
+				loginButton: {color: "green", type: 3, height: 45}
+			});
+			naverLogin.init();
+	})//e.o.naver
+		
 	
 </script>
 
@@ -143,47 +231,30 @@
 																	</td>
 																</tr>
 															</table>
-															
-															<!-- 카카오 로그인 추가 -->
-															<a id="kakao-login-btn"></a>
-															<a href="http://developers.kakao.com/logout"></a>
-															<script type='text/javascript'>
-															  //<![CDATA[
-															  // 사용할 앱의 JavaScript 키를 설정해 주세요.
-															  Kakao.init('b3eb26586b770154ea49919a7f59f2d2');
-															  // 카카오 로그인 버튼을 생성합니다.
-															  Kakao.Auth.createLoginButton({
-															    container: '#kakao-login-btn',
-															    success: function(authObj) {
-																	//alert(JSON.stringify(authObj));
-																	var accessToken = Kakao.Auth.getAccessToken();
-																	var refreshToken = Kakao.Auth.getRefreshToken();
-																	alert(accessToken);
-																	alert(refreshToken);
-																	/*
-																	if(refreshToken){
-																		Kakao.API.request({
-																			url : '/v1/user/me',
-																			success : function(res){
-																				var sData = JSON.stringify(res);
-																				alert(sData);
-																				sData = JSON.parse(sData);
-																				var nickName = sData.properties.ninkname;
-																			}
-																		});
-																	}*/
-															    },
-															    fail: function(err) {
-															       alert(JSON.stringify(err));
-															    }
-															  });
-															 //]]>
-															</script>
-																														
+																												
 														</td>
 														<td width="20" height="20">&nbsp;</td>
 													</tr>
 												</table>
+												
+												<!-- 로그인 실패 Ajax 처리 --><br>
+												<div id="message" align="center"></div><br>
+												
+												<!-- 카카오 로그인 추가 -->
+												<div id="kakaoLogin" align="center">
+													<a id="kakao-login-btn" href="#">
+														<img src="//k.kakaocdn.net/14/dn/btqbjxsO6vP/KPiGpdnsubSq3a0PHEGUK1/o.jpg" width="80%"/>
+													</a>
+													<a href="http://developers.kakao.com/logout"></a>
+												</div>
+												
+												<!-- 네이버 로그인 추가 -->
+  												<div id="naverIdLogin" align="center">
+													<a id="naver-login-btn" href="#" role="button">
+														<img src="https://static.nid.naver.com/oauth/big_g.PNG" width="80%" height="45"/> 
+													</a>
+												</div>
+
 											</td>
 										</tr>
 									</table>
