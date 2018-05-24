@@ -7,8 +7,34 @@
 <link rel="stylesheet" href="/css/admin.css" type="text/css">
 
 <script src="//developers.kakao.com/sdk/js/kakao.min.js"></script>
+
 <script src="https://static.nid.naver.com/js/naveridlogin_js_sdk_2.0.0.js"></script>
-<script src="https://static.nid.naver.com/js/naverLogin_implicit-1.0.3.js" charset="utf-8"></script>
+
+<script>
+  window.fbAsyncInit = function() {
+    FB.init({
+      appId            : '141283403397328',
+      autoLogAppEvents : true,
+      xfbml            : true,
+      version          : 'v3.0'
+    });
+  };
+
+  (function(d, s, id){
+     var js, fjs = d.getElementsByTagName(s)[0];
+     if (d.getElementById(id)) {return;}
+     js = d.createElement(s); js.id = id;
+     js.src = "https://connect.facebook.net/en_US/sdk.js";
+     fjs.parentNode.insertBefore(js, fjs);
+   }(document, 'script', 'facebook-jssdk'));
+</script>
+
+<!-- <script src="https://apis.google.com/js/platform.js" async defer></script> -->
+<!-- <script src="https://apis.google.com/js/client:plusone.js"></script> -->
+<!-- <script src="https://apis.google.com/js/client:platform.js" async defer></script> -->
+<script src="https://apis.google.com/js/client:platform.js?onload=renderButton" async defer></script>
+<meta name="google-signin-client_id" content="1089144671013-46avnp2olvffg3g00lbdlpu3j7arps1q.apps.googleusercontent.com"></meta>
+
 
 <script src="http://code.jquery.com/jquery-2.1.4.min.js"></script>
 <script type="text/javascript">
@@ -86,7 +112,6 @@
 		$("img[src='/images/btn_add.gif']").on("click", function(){
 			self.location="/user/addUser";
 		});
-
 		
 	});
 
@@ -158,16 +183,127 @@
 	
 	//네이버 로그인
 	$(function(){
-   			var naverLogin = new naver.LoginWithNaverId({
-				clientId: "NqLY8zfxRnZIl3CjoL1a",
-				callbackUrl: "http://192.168.0.69:8080/user/naverCallback.jsp",
-				isPopup: true,
-				loginButton: {color: "green", type: 3, height: 45}
-			});
-			naverLogin.init();
+   		var naverLogin = new naver.LoginWithNaverId({
+			clientId: "NqLY8zfxRnZIl3CjoL1a",
+			callbackUrl: "http://192.168.0.69:8080/user/naverCallback.jsp",
+			isPopup: true,
+			loginButton: {color: "green", type: 3, height: 45}
+		});
+		naverLogin.init();
 	})//e.o.naver
-		
 	
+	//페이스북 로그인
+	$(function(){
+/* 		FB.login(function(response) {
+		    if (response.authResponse) {
+		     console.log('Welcome!  Fetching your information.... ');
+		     FB.api('/me', function(response) {
+		       console.log('Good to see you, ' + response.name + '.');
+		     });
+		    } else {
+		     console.log('User cancelled login or did not fully authorize.');
+		    }
+		}); */
+	    
+		$("#facebook-login-btn").on("click", function(){
+			alert("z");
+			FB.getLoginStatus(function(response){
+				alert(response.status);
+				statusChangeCallback(response);
+			});
+		}) 
+		
+	});
+	
+/* 
+		$.ajax({
+			url : "https://www.facebook.com/v3.0/dialog/oauth?client_id={141283403397328}&redirect_uri={https://192.168.0.69:8080}",
+        	 	headers : {
+  				"Accept" : "application/json",
+  				"Content-Type" : "application/json"
+  			},
+			success : function(JSONData){
+				alert(JSONData);
+			}
+		})
+	})
+*/
+	
+	//구글 로그인
+	$(function(){
+		function onSuccess(googleUser) {
+		    var profile = googleUser.getBasicProfile();
+		    //console.log(profile);
+			    //Eea : "115795601565666831944"
+				//Paa : "https://lh5.googleusercontent.com/-sqhau76RDZY/AAAAAAAAAAI/AAAAAAAAAAA/AIcfdXBZz_7LYdiS_80Xsx3dz8B9di7T6Q/s96-c/photo.jpg"
+				//U3 : "wowjisoowow@gmail.com"
+				//ig : "Js Ha"
+				//ofa : "Js"
+				//wea : "Ha"
+		    //console.log(googleUser.getAuthResponse().id_token);
+		}
+		
+		$(".g-signin2").on("click", function(){
+		    gapi.client.load('plus', 'v1', function () {
+		        gapi.client.plus.people.get({
+		            'userId': 'me'
+		        }).execute(function (res) {
+		        	console.log(JSON.stringify(res));
+		        	
+		        	res.id += "@g";
+			              
+		            $.ajax({
+		            	url : "/user/json/checkDuplication/"+res.id,
+		            	headers : {
+		  					"Accept" : "application/json",
+		  					"Content-Type" : "application/json"
+		  				},
+		  				success : function(idChk){
+		  					  if(idChk==true){ //DB에 아이디가 없을 경우 => 회원가입
+		  						  console.log("회원가입중...");
+		  						  $.ajax({
+		  							  url : "/user/json/addUser",
+		  							  method : "POST",
+		  							  headers : {
+		  								"Accept" : "application/json",
+		  								"Content-Type" : "application/json"
+		  							  },
+		  							  data : JSON.stringify({
+		  								userId : res.id,
+		  								userName : res.displayName,
+		  								password : "google123",
+		  							  }),
+		  							  success : function(JSONData){
+		  								 alert("회원가입이 정상적으로 되었습니다.");
+		  								 $("form").attr("method","POST").attr("action","/user/snsLogin/"+res.id).attr("target","_parent").submit();
+		  							  }
+		  						  })
+		  					  }
+		  					  if(idChk==false){ //DB에 아이디가 존재할 경우 => 로그인
+		  						  console.log("로그인중...");
+		  						  $("form").attr("method","POST").attr("action","/user/snsLogin/"+res.id).attr("target","_parent").submit();
+		  					  }
+		  				  }
+		              })
+		        	})
+	        })
+		})//e.o.google.loginLogic
+		
+		function onFailure(error) {
+		    console("error : "+error);
+		}
+		
+		function signOut() {
+		    var auth2 = gapi.auth2.getAuthInstance();
+		    auth2.signOut().then(function () {
+		    	self.location="/user/logout";
+		    });
+		}
+		
+	})//e.o.google
+	
+	
+	     
 </script>
 
 </head>
@@ -255,6 +391,42 @@
 													</a>
 												</div>
 
+												<!-- 페이스북 로그인 추가 -->
+												<div id="facebookLogin" align="center">
+													<fb id="facebook-login-btn" href="#">
+														<img src="/images/sns/facebook.PNG" onlogin="checkLoginState();">
+													</fb>
+												</div>
+												
+												<!-- 구글 로그인 추가 -->
+												<div id="googleLogin" align="center">
+<!--  													 <a id="google-login-btn" href="#">
+														<img src="/images/sns/facebook.PNG">
+													</a> -->
+													
+													<div class="g-signin2" data-onsuccess="onSuccess" data-theme="dark"></div>
+													 
+													 
+													<!-- HTML for render Google Sign-In button -->
+<!-- 													<div id="gSignIn"></div> -->
+													<!-- HTML for displaying user details -->
+													<div class="userContent"></div>
+													
+													
+<!-- 													<span id="signinButton">
+												  <span
+												    class="g-signin"
+												    data-callback="signinCallback"
+												    data-clientid="1089144671013-46avnp2olvffg3g00lbdlpu3j7arps1q"
+												    data-cookiepolicy="single_host_origin"
+												    data-requestvisibleactions="http://schemas.google.com/AddActivity"
+												    data-scope="https://www.googleapis.com/auth/plus.login">
+												  </span>
+												</span> -->
+												
+	    
+												</div>
+												
 											</td>
 										</tr>
 									</table>

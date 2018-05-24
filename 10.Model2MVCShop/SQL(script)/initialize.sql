@@ -12,7 +12,7 @@ CREATE SEQUENCE seq_transaction_tran_no	 INCREMENT BY 1 START WITH 10000;
 
 
 CREATE TABLE users ( 
-	user_id 			VARCHAR2(20)		NOT NULL,
+	user_id 			VARCHAR2(30)		NOT NULL,
 	user_name 	VARCHAR2(50)		NOT NULL,
 	password 		VARCHAR2(10)		NOT NULL,
 	role 				VARCHAR2(5) 		DEFAULT 'user',
